@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate Generator - Vande Mataram</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 480px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #1a365d;
+      font-size: 20px;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      font-size: 13px;
+      color: #333;
+      display: block;
+      margin-top: 12px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    button {
+      width: 100%;
+      background: #c53030;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      padding: 12px;
+      margin-top: 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #9b2c2c;
+    }
+    canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Download Participation Certificate</h2>
+    
+    <label for="studentName">Participant Name *</label>
+    <input type="text" id="studentName" placeholder="Enter Full Name" required>
+
+    <label for="parentName">Son / Daughter of</label>
+    <input type="text" id="parentName" placeholder="Enter Parent's Name">
+
+    <label for="schoolName">School Name</label>
+    <input type="text" id="schoolName" placeholder="Enter School Name">
+
+    <button onclick="generatePDF()">Download Certificate (PDF)</button>
+  </div>
+
+  <canvas id="certCanvas" width="1000" height="706"></canvas>
+
+  <script>
+    const certImageSrc = "certificate-template.jpeg"; // Path or direct image URL
+
+    function generatePDF() {
+      const studentName = document.getElementById("studentName").value.trim();
+      const parentName = document.getElementById("parentName").value.trim();
+      const schoolName = document.getElementById("schoolName").value.trim();
+
+      if (!studentName) {
+        alert("Please enter your name!");
+        return;
+      }
+
+      const canvas = document.getElementById("certCanvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = certImageSrc;
+
+      img.onload = function() {
+        // Draw the base certificate template
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Styling for dynamic text fields
+        ctx.fillStyle = "#0c2340";
+        ctx.font = "bold 18px 'Georgia', serif";
+
+        // Coordinates aligned with template blanks
+        // 1. Participant Name (After 'This is to certify that')
+        ctx.fillText(studentName, 275, 303);
+
+        // 2. Parent Name (After 'Son/Daughter of')
+        if (parentName) {
+          ctx.fillText(parentName, 60, 340);
+        }
+
+        // 3. School Name (Preceding 'School')
+        if (schoolName) {
+          ctx.fillText(schoolName, 700, 340);
+        }
+
+        // Convert canvas rendering to PDF
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "px",
+          format: [1000, 706]
+        });
+
+        pdf.addImage(imgData, "JPEG", 0, 0, 1000, 706);
+        pdf.save(`${studentName.replace(/\s+/g, "_")}_Certificate.pdf`);
+      };
+
+      img.onerror = function() {
+        alert("Could not load the certificate template image. Verify the image URL/path.");
+      };
+    }
+  </script>
+
+</body>
+</html>
